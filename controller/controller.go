@@ -97,7 +97,6 @@ func AddUserController(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req UserReq
 		var user User
-		id := c.Param("id")
 
 		err := c.Bind(&req)
 		if err != nil {
@@ -105,13 +104,13 @@ func AddUserController(db *sqlx.DB) echo.HandlerFunc {
 		}
 
 		query := `
-		UPDATE users
-		SET name = $1, email = $2, umur = $3, updated_at = now() WHERE id = $4 
+		INSERT INTO users (name, email, umur, created_at)
+		VALUES ($1, $2, $3, now())  
 		RETURNING id, name, email, umur, created_at
 		`
-		row := db.QueryRowx(query, req.Name, req.Email, req.Umur, id)
+		row := db.QueryRowx(query, req.Name, req.Email, req.Umur)
 
-		err = row.Scan(&user.Id, &user.Name, &user.Email, &user.Umur, &user.CreatedAt)
+		err = row.Scan(&user.Id, &user.Name, &user.Email, &user.Umur, &user.CreatedAt, &user.UpdatedAt)
 		if err != nil {
 			return err
 		}
