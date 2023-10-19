@@ -7,8 +7,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"testing/controller"
-	"testing/db"
+	"ngetes/controller"
+	"ngetes/db"
+	mddw "ngetes/middleware"
+
 )
 
 func Init() error {
@@ -26,11 +28,16 @@ func Init() error {
 		})
 	})
 
+	user := e.Group("/users")
 
-	e.GET("/users", controller.GetUsersController(db))
-	e.GET("/users/:id", controller.GetUserByIdController(db))
-	e.POST("users", controller.AddUserController(db))
-	e.PUT("users/:id", controller.UpdateUserController(db))
-	e.DELETE("/users/:id", controller.DeleteUsersController(db))
+	mddw.ValidateToken(user) // Function untuk manggil middleware ke group routes /users
+
+	user.GET("", controller.GetUsersController(db))
+	user.GET("/:id", controller.GetUserByIdController(db))
+	user.POST("", controller.AddUserController(db))
+	user.PUT("/:id", controller.UpdateUserController(db))
+	user.DELETE("/:id", controller.DeleteUsersController(db))
+	e.POST("/register", controller.RegisterController(db))
+	e.POST("/login", controller.LoginController(db))
 	return e.Start(fmt.Sprintf(":%s", os.Getenv("SERVER_PORT")))
 }
